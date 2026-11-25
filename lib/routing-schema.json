@@ -1,0 +1,20 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["suggestions"],
+  "properties": {
+    "suggestions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["chat", "project", "reason"],
+        "properties": {
+          "chat": { "type": "integer" },
+          "project": { "type": ["integer", "null"] },
+          "reason": { "type": "string" }
+        }
+      }
+    }
+  }
+}

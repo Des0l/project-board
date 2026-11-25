@@ -1,0 +1,38 @@
+{
+  "name": "project-board",
+  "description": "Локальная канбан-доска для задач из чатов Codex с переходом к исходной переписке.",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "open": "node open-board.mjs",
+    "start": "node --disable-warning=ExperimentalWarning server.mjs",
+    "test": "node --disable-warning=ExperimentalWarning --test tests/*.test.mjs",
+    "demo": "node --disable-warning=ExperimentalWarning server.mjs --demo"
+  },
+  "version": "0.13.0",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "files": [
+    "server.mjs",
+    "lib/",
+    "public/",
+    "plugins/project-board/",
+    "desktop/ProjectBoard.cs",
+    "scripts/build-windows-launcher.ps1",
+    "tests/",
+    "Open-board.cmd",
+    "Connect-ChatGPT.cmd",
+    "Open-board.command",
+    "Open-board.sh",
+    "open-board.mjs",
+    "Start-board.ps1",
+    "README.md",
+    "README.en.md",
+    "docs/demo.webp",
+    "docs/chat-to-card.webp",
+    "board.mjs",
+    "skills/project-board/"
+  ]
+}
