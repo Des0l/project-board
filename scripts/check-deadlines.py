@@ -497,10 +497,12 @@ def check_empty_layout(browser, url):
     for width, height in [(1920, 1080), (2560, 1080), (390, 844)]:
         page.set_viewport_size({"width": width, "height": height})
         for view in ["inbox", "dates", "focus", "chats", "snoozed", "trash"]:
-            page.locator("#" + view + "-view").click()
-            empty = page.locator("#content > :is(.agenda-empty, .empty-page)")
-            expect(empty).to_be_visible()
-            geometry = empty.evaluate("""node => {
+            view_button = page.locator("#" + view + "-view")
+            view_button.click()
+            expect(view_button).to_have_attribute("aria-pressed", "true")
+            empty = "#content > :is(.agenda-empty, .empty-page)"
+            expect(page.locator(empty)).to_be_visible()
+            geometry = page.eval_on_selector(empty, """node => {
                 const range = document.createRange();
                 range.selectNodeContents(node);
                 const visible = range.getBoundingClientRect();
