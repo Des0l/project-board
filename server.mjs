@@ -77,6 +77,7 @@ const staticFiles = new Map([
   ['/favicon.ico', ['favicon.ico', 'image/x-icon']],
   ['/style.css', ['style.css', 'text/css; charset=utf-8']],
   ['/card-chats.mjs', ['card-chats.mjs', 'text/javascript; charset=utf-8']],
+  ['/i18n.mjs', ['i18n.mjs', 'text/javascript; charset=utf-8']],
   ['/app.js', ['app.js', 'text/javascript; charset=utf-8']],
   ...Object.entries({
     'lucide.svg': 'image/svg+xml', 'number-flow.js': 'text/javascript; charset=utf-8',

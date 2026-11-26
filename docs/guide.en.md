@@ -15,7 +15,7 @@ When the board syncs, the task appears in **Inbox**. Choose **Add to board** to 
 | Project | Atlas |
 | Starting column | Planned |
 
-In the version under development, the board uses your system language if it is English or Russian. Release v0.13.0 has a Russian interface. To change it, open **Board settings → Interface language**. Choose **System default** to follow your system again. The board remembers your choice on this device.
+Project Board is available in English and Russian. It follows your browser or system language by default and uses English when neither supported language is listed. Open **Board and project settings** next to the project list and choose **Interface language**. The board remembers your selection on this device.
 
 The board looks for tasks in English and Russian. It keeps excerpts in the language of the chat. If a chat contains only a task title, the card's description stays empty.
 
@@ -49,7 +49,7 @@ On Windows, use paths such as `D:/Projects/atlas`. The board checks connected ch
 
 The board checks Codex history automatically. Claude Code, Kimi and other assistants can send tasks through the command that comes with the board or through the local HTTP API.
 
-To connect another assistant, open **Settings**, choose a project and expand **Other assistants → Connect another assistant**. Copy the instructions into a chat that can run commands on your computer. The instructions use the board's language by default. You can choose English or Russian separately. See the [agent instructions](../skills/project-board/SKILL.md) for how to send the task details with `--description`.
+To connect another assistant, open the project's settings and expand **Connect another assistant**. Copy the instructions into a chat that can run commands on your computer. The instructions use the board's current language. See the [agent instructions](../skills/project-board/SKILL.md) for how to send the task details with `--description`.
 
 ## Project Board in the ChatGPT app
 
@@ -59,6 +59,6 @@ In the ChatGPT app, switch to Codex and select the Project Board plugin. You can
 
 ## Data and backups
 
-The board uses SQLite on your computer to store cards, projects, saved excerpts, links and inbox decisions. The server listens on `127.0.0.1`. Programs that can reach that port can access the board. To back up your data, open **Sources** and choose **Save backup**. In release v0.13.0, these buttons are **Источники** and **Сохранить копию**.
+The board uses SQLite on your computer to store cards, projects, saved excerpts, links and inbox decisions. The server listens on `127.0.0.1`. Programs that can reach that port can access the board. To back up your data, open **Sources** and choose **Save backup**.
 
 The [Russian manual](guide.ru.md) covers project filters, cards linked to multiple chats, desktop ChatGPT and restoring a backup. The code is available under the [MIT license](../LICENSE).

@@ -521,6 +521,44 @@ def check_empty_layout(browser, url):
     page.close()
 
 
+def check_language(browser, url):
+    page = browser.new_page(viewport={"width": 1280, "height": 850}, locale="en-US")
+    errors = []
+    page.on("pageerror", lambda error: errors.append(str(error)))
+    page.goto(url)
+    expect(page.locator("html")).to_have_attribute("lang", "en")
+    expect(page.locator("#page-title")).to_have_text("Project board")
+    expect(page.locator("#content h2").filter(has_text="Planned").first).to_be_visible()
+    title = "Задача с исходным языком"
+    page.locator("#quick-title").fill(title)
+    page.locator("#quick-title").press("Enter")
+    page.get_by_role("button", name="Create task", exact=True).click()
+    expect(page.get_by_role("button", name=title, exact=True)).to_be_visible()
+
+    page.get_by_role("button", name="Board and project settings", exact=True).click()
+    page.get_by_label("Interface language").select_option("ru")
+    expect(page.locator("html")).to_have_attribute("lang", "ru")
+    expect(page.get_by_label("Язык интерфейса")).to_have_value("ru")
+    expect(page.locator("#page-title")).to_have_text("Общая доска")
+    page.reload()
+    expect(page.get_by_role("button", name=title, exact=True)).to_be_visible()
+    page.get_by_role("button", name="Настройки доски и проекта", exact=True).click()
+    page.get_by_label("Язык интерфейса").select_option("system")
+    expect(page.locator("html")).to_have_attribute("lang", "en")
+    expect(page.get_by_label("Interface language")).to_have_value("system")
+    assert not errors, errors
+    page.close()
+
+    mobile = browser.new_page(viewport={"width": 390, "height": 844}, locale="ru-RU", is_mobile=True, has_touch=True)
+    mobile.goto(url + "/#inbox")
+    expect(mobile.locator("#page-title")).to_have_text("Неразобранные задачи")
+    mobile.get_by_role("button", name="Настройки доски и проекта", exact=True).click()
+    mobile.get_by_label("Язык интерфейса").select_option("en")
+    expect(mobile.get_by_label("Interface language")).to_be_visible()
+    expect(mobile.locator("#page-title")).to_have_text("Inbox")
+    mobile.close()
+
+
 def main():
     scratch = ROOT / ".work" / "test-temp"
     scratch.mkdir(parents=True, exist_ok=True)
@@ -556,6 +594,7 @@ def main():
                 check_project_filter(browser, url)
                 check_chat_description(browser, url)
                 check_draft_queue(browser, url)
+                check_language(browser, url)
                 browser.close()
         finally:
             server.terminate()

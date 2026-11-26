@@ -20,11 +20,11 @@ Extract the archive for your system to a folder you can write to.
 
 To run from source, use Node.js 22.13 or later and run `npm run open` from the repository. [Setup details](docs/guide.en.md#download-and-run)
 
-Release `v0.13.0` has a Russian interface. The English GIF shows the interface in development.
+The board supports English and Russian. It follows your system language by default. To change it, open settings using the icon next to the project list and select **Interface language**.
 
 ## Try the demo
 
-From source, run `npm run demo`. From a downloaded archive, run `.\Open-board.cmd --demo` on Windows or `sh Open-board.sh --demo` on macOS and Linux. Open [Inbox](http://127.0.0.1:4180/#inbox), find the museum-hours suggestion and add it to the board. The new card includes the details from the request.
+From source, run `npm run demo`. From a downloaded archive, run `.\Open-board.cmd --demo` on Windows or `sh Open-board.sh --demo` on macOS and Linux. Open [Inbox](http://127.0.0.1:4180/#inbox), find the museum-hours suggestion (`Уточнить часы работы музея`) and add it to the board. The new card includes the details from the request.
 
 ## Connect your chats
 

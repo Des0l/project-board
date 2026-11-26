@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,6 +12,30 @@ using Microsoft.Web.WebView2.WinForms;
 
 internal static class ProjectBoard {
     internal static readonly string Root = AppDomain.CurrentDomain.BaseDirectory;
+
+    // The WebView owns the preference. Mirror it for the startup screen before the page loads.
+    private static readonly string LanguageFile = Path.Combine(Root, ".work", "desktop-profile", "language.txt");
+    private static string preference = ReadLanguage();
+
+    private static string ReadLanguage() {
+        try { return File.ReadAllText(LanguageFile).Trim(); }
+        catch (IOException) { return "system"; }
+        catch (UnauthorizedAccessException) { return "system"; }
+    }
+
+    internal static void RememberLanguage(string value) {
+        if (value != "ru" && value != "en" && value != "system") return;
+        if (preference == value) return;
+        preference = value;
+        try { File.WriteAllText(LanguageFile, value); }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
+    }
+
+    internal static string Label(string russian, string english) {
+        string language = preference == "ru" || preference == "en" ? preference : CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+        return language == "ru" ? russian : english;
+    }
 
     internal static Uri StartServer() {
         string runtime = Path.Combine(Root, "runtime", "node.exe");
@@ -30,7 +55,7 @@ internal static class ProjectBoard {
             Uri url;
             if (!Uri.TryCreate(address, UriKind.Absolute, out url) ||
                 url.Scheme != "http" || url.Host != "127.0.0.1") {
-                throw new InvalidOperationException("Сервер не вернул локальный адрес доски.");
+                throw new InvalidOperationException(ProjectBoard.Label("Сервер не вернул локальный адрес доски.", "The server did not return a local board address."));
             }
             return url;
         }
@@ -40,14 +65,14 @@ internal static class ProjectBoard {
     private static int Main(string[] args) {
         bool headless = args.Length == 1 && args[0] == "--no-open";
         try {
-            if (args.Length > 0 && !headless) throw new ArgumentException("Допустимый параметр: --no-open");
+            if (args.Length > 0 && !headless) throw new ArgumentException(ProjectBoard.Label("Допустимый параметр: --no-open", "Supported option: --no-open"));
             if (headless) { StartServer(); return 0; }
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             using (var window = new BoardWindow()) Application.Run(window);
             return 0;
         } catch (Exception error) {
-            if (!headless) MessageBox.Show(error.Message, "Доска проектов", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            if (!headless) MessageBox.Show(error.Message, ProjectBoard.Label("Доска проектов", "Project Board"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             return 1;
         }
     }
@@ -55,8 +80,8 @@ internal static class ProjectBoard {
 
 internal sealed class BoardWindow : Form {
     private readonly Panel startup = new Panel { Dock = DockStyle.Fill, Padding = new Padding(24) };
-    private readonly Label status = new Label { Dock = DockStyle.Fill, Text = "Открываем доску…" };
-    private readonly Button browser = new Button { AutoSize = true, Text = "Открыть в браузере", Enabled = false };
+    private readonly Label status = new Label { Dock = DockStyle.Fill, Text = ProjectBoard.Label("Открываем доску…", "Opening board…") };
+    private readonly Button browser = new Button { AutoSize = true, Text = ProjectBoard.Label("Открыть в браузере", "Open in browser"), Enabled = false };
     private Uri address;
     [DllImport("dwmapi.dll")]
     private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
@@ -89,7 +114,7 @@ internal sealed class BoardWindow : Form {
     }
 
     internal BoardWindow() {
-        Text = "Доска проектов";
+        Text = ProjectBoard.Label("Доска проектов", "Project Board");
         Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
         StartPosition = FormStartPosition.CenterScreen;
         Size area = Screen.FromControl(this).WorkingArea.Size;
@@ -116,7 +141,7 @@ internal sealed class BoardWindow : Form {
             address = await Task.Run(() => ProjectBoard.StartServer());
             if (IsDisposed) return;
             browser.Enabled = true;
-            status.Text = "Загружаем " + address.AbsoluteUri;
+            status.Text = ProjectBoard.Label("Загружаем ", "Loading ") + address.AbsoluteUri;
             await OpenView();
         } catch (Exception error) {
             ShowProblem(error.Message);
@@ -128,14 +153,28 @@ internal sealed class BoardWindow : Form {
         Controls.Add(view);
         startup.BringToFront();
         string profile = Path.Combine(ProjectBoard.Root, ".work", "desktop-profile", address.Port.ToString());
-        var environment = await CoreWebView2Environment.CreateAsync(null, profile);
+        var environment = await CoreWebView2Environment.CreateAsync(null, profile,
+            new CoreWebView2EnvironmentOptions { Language = CultureInfo.CurrentUICulture.Name });
         if (IsDisposed) return;
         await view.EnsureCoreWebView2Async(environment);
         if (IsDisposed) return;
+        view.CoreWebView2.WebMessageReceived += delegate(object sender, CoreWebView2WebMessageReceivedEventArgs e) {
+            Uri senderUrl;
+            if (!Uri.TryCreate(e.Source, UriKind.Absolute, out senderUrl) || senderUrl.GetLeftPart(UriPartial.Authority) != address.GetLeftPart(UriPartial.Authority)) return;
+            string message = e.WebMessageAsJson;
+            if (message == "\"ru\"" || message == "\"en\"" || message == "\"system\"") {
+                ProjectBoard.RememberLanguage(message.Trim('"'));
+                browser.Text = ProjectBoard.Label("Открыть в браузере", "Open in browser");
+            }
+        };
+        view.CoreWebView2.DocumentTitleChanged += delegate {
+            string title = view.CoreWebView2.DocumentTitle;
+            if (!IsDisposed && (title == "Доска проектов" || title == "Project Board")) Text = title;
+        };
         view.NavigationCompleted += delegate(object sender, CoreWebView2NavigationCompletedEventArgs e) {
             if (IsDisposed) return;
             if (e.IsSuccess) view.BringToFront();
-            else ShowProblem("Ошибка загрузки страницы: " + e.WebErrorStatus);
+            else ShowProblem(ProjectBoard.Label("Ошибка загрузки страницы: ", "Could not load the page: ") + e.WebErrorStatus);
         };
         view.Source = address;
     }
@@ -143,7 +182,7 @@ internal sealed class BoardWindow : Form {
     private void ShowProblem(string detail) {
         if (IsDisposed) return;
         startup.BringToFront();
-        status.Text = (address == null ? "Не удалось запустить доску." : "Доска доступна по адресу " + address.AbsoluteUri)
+        status.Text = (address == null ? ProjectBoard.Label("Не удалось запустить доску.", "Could not start the board.") : ProjectBoard.Label("Доска доступна по адресу ", "The board is available at ") + address.AbsoluteUri)
             + Environment.NewLine + detail;
     }
 }
