@@ -396,7 +396,7 @@ def check_project_filter(browser, url):
 
 
 def check_chat_description(browser, url):
-    page = browser.new_page()
+    page = browser.new_page(locale="ru-RU")
     title = "Сверить выгрузку остатков"
     evidence = "В выгрузке должны остаться строки с нулевым остатком."
     headers = {"X-Board-Action": "1"}
@@ -445,7 +445,7 @@ def check_chat_description(browser, url):
 
 
 def check_draft_queue(browser, url):
-    page = browser.new_page()
+    page = browser.new_page(locale="ru-RU")
     headers = {"X-Board-Action": "1"}
     titles = ["Очередь описаний A", "Очередь описаний B"]
     for title in titles:
@@ -490,7 +490,7 @@ def check_draft_queue(browser, url):
 
 
 def check_empty_layout(browser, url):
-    page = browser.new_page(reduced_motion="reduce")
+    page = browser.new_page(locale="ru-RU", reduced_motion="reduce")
     page.goto(url + "/#inbox")
     expect(page.get_by_text("Всё разобрано на сегодня")).to_be_visible()
     page.evaluate("document.fonts.ready")
